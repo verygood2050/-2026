@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AH! BNP - 믿음의 한 주</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1E3A5F;
+      --primary-light: #2E5077;
+      --accent: #FF6B35;
+      --gold: #D4A574;
+      --gold-light: #E8C9A8;
+      --bg-main: #F8F6F3;
+      --bg-card: #FFFFFF;
+      --bg-warm: #FDF8F3;
+      --text-dark: #1A1A1A;
+      --text-muted: #6B7280;
+      --success: #10B981;
+      --border: #E5E7EB;
+      --shadow: rgba(30, 58, 95, 0.08);
+      --b-color: #3B82F6;
+      --n-color: #8B5CF6;
+      --p-color: #EC4899;
+      --a-color: #F59E0B;
+      --h-color: #10B981;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg-main); color: var(--text-dark); min-height: 100vh; line-height: 1.6; }
+    .app-container { max-width: 650px; margin: 0 auto; min-height: 100vh; background: var(--bg-main); padding-bottom: 90px; }
+    .header { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; padding: 20px; position: relative; }
+    .header::before { content: '!'; position: absolute; top: -20px; right: 20px; font-size: 120px; font-weight: 900; color: rgba(255, 107, 53, 0.15); }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-size: 1.8rem; font-weight: 900; }
+    .header-title .ah { color: var(--accent); }
+    .header-week { font-size: 0.85rem; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; }
+    .header-subtitle { font-size: 0.9rem; opacity: 0.9; margin-top: 8px; }
+    
+    .view-toggle { display: flex; gap: 8px; padding: 12px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border); }
+    .view-btn { flex: 1; padding: 10px; border: 2px solid var(--border); background: white; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .view-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    
+    .project-dropdown-bar { display: flex; gap: 8px; padding: 10px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border); }
+    .project-select { flex: 1; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.95rem; font-family: inherit; background: white; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .project-select:focus { outline: none; border-color: var(--primary); }
+    .project-add-btn { width: 46px; height: 46px; border: 2px solid var(--accent); background: var(--accent); color: white; border-radius: 10px; font-size: 1.5rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .project-add-btn:hover { background: var(--primary); border-color: var(--primary); }
+    
+    .bnpah-bar { display: flex; gap: 3px; padding: 12px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border); }
+    .bnpah-step { flex: 1; text-align: center; padding: 6px 2px; border-radius: 8px; font-weight: 600; cursor: pointer; opacity: 0.5; }
+    .bnpah-step.active { opacity: 1; transform: scale(1.05); }
+    .bnpah-step.b { background: rgba(59, 130, 246, 0.15); color: var(--b-color); }
+    .bnpah-step.n { background: rgba(139, 92, 246, 0.15); color: var(--n-color); }
+    .bnpah-step.p { background: rgba(236, 72, 153, 0.15); color: var(--p-color); }
+    .bnpah-step.a { background: rgba(245, 158, 11, 0.15); color: var(--a-color); }
+    .bnpah-step.h { background: rgba(16, 185, 129, 0.15); color: var(--h-color); }
+    .bnpah-step.active.b { background: var(--b-color); color: white; }
+    .bnpah-step.active.n { background: var(--n-color); color: white; }
+    .bnpah-step.active.p { background: var(--p-color); color: white; }
+    .bnpah-step.active.a { background: var(--a-color); color: white; }
+    .bnpah-step.active.h { background: var(--h-color); color: white; }
+    .step-letter { font-size: 1rem; font-weight: 900; }
+    .step-day { font-size: 0.6rem; margin-top: 2px; }
+    
+    .nav-bar { display: flex; justify-content: space-around; background: var(--bg-card); padding: 8px; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 650px; border-top: 1px solid var(--border); z-index: 100; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 10px; border-radius: 12px; cursor: pointer; font-size: 0.65rem; color: var(--text-muted); border: none; background: none; }
+    .nav-item.active { background: var(--primary); color: white; }
+    .nav-icon { font-size: 1.1rem; }
+    
+    .main-content { padding: 6px; }
+    .card { background: var(--bg-card); border-radius: 16px; padding: 14px; margin-bottom: 6px; box-shadow: 0 2px 12px var(--shadow); border: 1px solid var(--border); }
+    .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 12px; color: var(--primary); }
+    .current-project { background: linear-gradient(135deg, var(--bg-warm), var(--gold-light)); border: 2px solid var(--gold); padding: 12px; }
+    .project-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+    .project-name { font-size: 1.3rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+    .project-date { font-size: 0.85rem; color: var(--text-muted); }
+    
+    .today-step { border-left: 4px solid var(--accent); }
+    .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .step-badge { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; color: white; }
+    .step-badge.b { background: var(--b-color); }
+    .step-badge.n { background: var(--n-color); }
+    .step-badge.p { background: var(--p-color); }
+    .step-badge.a { background: var(--a-color); }
+    .step-badge.h { background: var(--h-color); }
+    .step-info h3 { font-size: 1.1rem; font-weight: 700; }
+    .step-info p { font-size: 0.85rem; color: var(--text-muted); }
+    
+    .record-box { background: var(--bg-main); border-radius: 12px; padding: 10px; margin-bottom: 8px; border: 1px solid var(--border); }
+    .record-box-title { font-size: 0.9rem; font-weight: 600; color: var(--primary); margin-bottom: 8px; }
+    .record-box-input { width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.9rem; font-family: inherit; min-height: 60px; resize: vertical; background: white; }
+    .record-box-input:focus { outline: none; border-color: var(--primary); }
+    
+    .btn { padding: 12px 24px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-block { width: 100%; }
+    
+    .checklist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .checklist-title { font-size: 0.9rem; font-weight: 600; color: var(--primary); }
+    .checklist-count { font-size: 0.75rem; color: var(--text-muted); background: white; padding: 2px 8px; border-radius: 10px; }
+    .checklist-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .checklist-input { flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: inherit; }
+    .checklist-input:focus { outline: none; border-color: var(--primary); }
+    .checklist-submit { padding: 10px 14px; background: var(--success); color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+    .checklist-items { display: flex; flex-direction: column; gap: 4px; }
+    .checklist-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border-radius: 10px; border: 1px solid var(--border); }
+    .checklist-item.completed { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); }
+    .checklist-item.dragging { opacity: 0.5; background: #fef3c7; }
+    .checklist-drag { color: var(--text-muted); font-size: 1.1rem; cursor: move; padding: 4px; user-select: none; }
+    .checklist-drag:hover { color: var(--primary); }
+    .checklist-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: var(--success); }
+    .checklist-text { flex: 1; font-size: 0.9rem; }
+    .checklist-text.completed { text-decoration: line-through; color: var(--text-muted); }
+    .checklist-delete { width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 0.8rem; opacity: 0.4; }
+    .checklist-delete:hover { background: #FEE2E2; opacity: 1; }
+    
+    /* 일주일 보기 */
+    .week-view { margin-bottom: 16px; }
+    .week-day-card { background: var(--bg-card); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
+    .week-day-card.today { border-left: 4px solid var(--accent); }
+    .week-day-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; }
+    .week-day-badge { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; color: white; }
+    .week-day-badge.b { background: var(--b-color); }
+    .week-day-badge.n { background: var(--n-color); }
+    .week-day-badge.p { background: var(--p-color); }
+    .week-day-badge.a { background: var(--a-color); }
+    .week-day-badge.h { background: var(--h-color); }
+    .week-day-title { flex: 1; }
+    .week-day-title h4 { font-size: 0.95rem; font-weight: 600; }
+    .week-day-title span { font-size: 0.75rem; color: var(--text-muted); }
+    .week-day-toggle { font-size: 1.2rem; color: var(--text-muted); }
+    .week-day-content { display: none; }
+    .week-day-content.open { display: block; }
+    .week-day-section { margin-bottom: 12px; }
+    .week-day-section-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .week-day-text { font-size: 0.85rem; color: var(--text-dark); background: var(--bg-main); padding: 10px; border-radius: 8px; white-space: pre-wrap; min-height: 40px; }
+    .week-day-todos { background: var(--bg-main); padding: 10px; border-radius: 8px; }
+    .week-day-todo-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 0.85rem; }
+    .week-day-todo-item.completed { color: var(--text-muted); text-decoration: line-through; }
+    
+    .calendar { background: var(--bg-card); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px var(--shadow); border: 1px solid var(--border); }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .calendar-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+    .calendar-nav { display: flex; gap: 8px; }
+    .calendar-nav-btn { width: 32px; height: 32px; border: 1px solid var(--border); background: white; border-radius: 8px; cursor: pointer; }
+    .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
+    .calendar-weekday { text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); padding: 8px 0; }
+    .calendar-weekday.sun { color: #EF4444; }
+    .calendar-weekday.sat { color: #3B82F6; }
+    .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 0.85rem; cursor: pointer; background: var(--bg-main); }
+    .calendar-day.empty { background: transparent; }
+    .calendar-day.today { background: var(--accent); color: white; font-weight: 700; }
+    .calendar-day.sun .calendar-day-number { color: #EF4444; }
+    .calendar-day.sat .calendar-day-number { color: #3B82F6; }
+    .calendar-day.today .calendar-day-number { color: white; }
+    .calendar-day-number { font-weight: 500; }
+    .calendar-day-step { font-size: 0.5rem; margin-top: 2px; font-weight: 700; }
+    
+    .project-item { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--bg-main); border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 2px solid transparent; }
+    .project-item.active { border-color: var(--accent); }
+    .project-icon { width: 44px; height: 44px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+    .project-info { flex: 1; }
+    .project-info h4 { font-size: 1rem; font-weight: 600; }
+    .project-info p { font-size: 0.8rem; color: var(--text-muted); }
+    .project-actions { display: flex; gap: 8px; }
+    .icon-btn { width: 32px; height: 32px; border: none; background: var(--bg-card); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .icon-btn:hover { background: var(--primary); color: white; }
+    .icon-btn.delete:hover { background: #EF4444; }
+    
+    .history-item { background: var(--bg-main); border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid var(--primary); }
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .history-week { font-weight: 700; color: var(--primary); }
+    .history-project { font-size: 0.85rem; color: var(--text-muted); background: var(--bg-card); padding: 4px 10px; border-radius: 6px; }
+    .history-steps { display: flex; gap: 6px; flex-wrap: wrap; }
+    .history-step { font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; background: var(--bg-card); }
+    
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-content { background: white; border-radius: 20px; padding: 16px; width: 100%; max-width: 550px; max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .modal-title { font-size: 1.2rem; font-weight: 700; }
+    .modal-close { width: 36px; height: 36px; border: none; background: var(--bg-main); border-radius: 50%; cursor: pointer; font-size: 1.1rem; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .settings-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-main); border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
+    .settings-label { display: flex; align-items: center; gap: 12px; font-weight: 500; }
+    .icon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px; }
+    .icon-option { width: 100%; aspect-ratio: 1; border: 2px solid var(--border); border-radius: 10px; background: var(--bg-main); font-size: 1.3rem; cursor: pointer; }
+    .icon-option.selected { border-color: var(--accent); background: var(--bg-warm); }
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+    .form-input { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem; font-family: inherit; }
+    .form-input:focus { outline: none; border-color: var(--primary); }
+    
+    .week-progress { display: flex; justify-content: space-between; margin-top: 12px; gap: 4px; }
+    .week-day { flex: 1; text-align: center; font-size: 0.65rem; color: var(--text-muted); cursor: pointer; }
+    .week-day-circle { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; margin: 0 auto 4px; font-size: 0.7rem; font-weight: 600; }
+    .week-day-circle.completed { background: var(--success); color: white; }
+    .week-day-circle.current { background: var(--accent); color: white; }
+    
+    .draggable-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 4px; }
+    .draggable-item.dragging { opacity: 0.5; background: #fef3c7; }
+    .draggable-item.completed { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); }
+    .drag-handle { color: var(--text-muted); font-size: 1.1rem; cursor: move; padding: 4px; }
+    .drag-handle:hover { color: var(--primary); }
+    .draggable-text { flex: 1; font-size: 0.9rem; }
+    .draggable-text.completed { text-decoration: line-through; color: var(--text-muted); }
+    .draggable-delete { width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 0.8rem; opacity: 0.4; }
+    .draggable-delete:hover { background: #FEE2E2; opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const STEPS = {
+      B: { letter: 'B', name: 'Bible & Basic', nameKo: '말씀과 기본', day: '월', color: 'b' },
+      N: { letter: 'N', name: 'Needs', nameKo: '필요', day: '화', color: 'n' },
+      P: { letter: 'P', name: 'Power', nameKo: '능력', day: '수', color: 'p' },
+      A1: { letter: 'A', name: 'Action', nameKo: '실천 1', day: '목', color: 'a' },
+      A2: { letter: 'A', name: 'Action', nameKo: '실천 2', day: '금', color: 'a' },
+      H1: { letter: 'H', name: 'Happy', nameKo: '기쁨', day: '토', color: 'h' },
+      H2: { letter: 'H', name: 'Result', nameKo: '결과', day: '일', color: 'h' }
+    };
+
+    const STEP_ORDER = ['B', 'N', 'P', 'A1', 'A2', 'H1', 'H2'];
+    const PROJECT_ICONS = ['📺', '📚', '💪', '🎨', '💼', '🏠', '✝️', '🎵', '📷', '✈️', '🌱', '💰'];
+
+    function getCurrentStep() {
+      const day = new Date().getDay();
+      const map = { 1: 'B', 2: 'N', 3: 'P', 4: 'A1', 5: 'A2', 6: 'H1', 0: 'H2' };
+      return map[day] || 'H2';
+    }
+
+    function getStepForDate(date) {
+      const day = date.getDay();
+      const map = { 1: 'B', 2: 'N', 3: 'P', 4: 'A1', 5: 'A2', 6: 'H1', 0: 'H2' };
+      return map[day] || 'H2';
+    }
+
+    function getWeekNumber() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 1);
+      return Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
+    }
+
+    function getWeekId() {
+      return new Date().getFullYear() + '-W' + getWeekNumber();
+    }
+
+    function formatToday() {
+      const now = new Date();
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      return now.getFullYear() + '년 ' + (now.getMonth() + 1) + '월 ' + now.getDate() + '일 (' + days[now.getDay()] + ')';
+    }
+
+    // 드래그 가능 체크리스트
+    function DraggableChecklist(props) {
+      const { items, setItems, title } = props;
+      const [newText, setNewText] = useState('');
+      const [dragIndex, setDragIndex] = useState(null);
+
+      function handleAdd() {
+        if (newText.trim()) {
+          const newItem = { id: Date.now(), text: newText.trim(), completed: false };
+          setItems([...items, newItem]);
+          setNewText('');
+        }
+      }
+
+      function handleToggle(id) {
+        setItems(items.map(function(item) {
+          return item.id === id ? { ...item, completed: !item.completed } : item;
+        }));
+      }
+
+      function handleDelete(id) {
+        setItems(items.filter(function(item) { return item.id !== id; }));
+      }
+
+      function handleDragStart(e, index) {
+        setDragIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index);
+      }
+
+      function handleDragOver(e, index) {
+        e.preventDefault();
+        if (dragIndex === null || dragIndex === index) return;
+        
+        const newItems = [...items];
+        const dragItem = newItems[dragIndex];
+        newItems.splice(dragIndex, 1);
+        newItems.splice(index, 0, dragItem);
+        setItems(newItems);
+        setDragIndex(index);
+      }
+
+      function handleDragEnd() {
+        setDragIndex(null);
+      }
+
+      const completedCount = items.filter(function(i) { return i.completed; }).length;
+
+      return (
+        <div>
+          <div className="checklist-header">
+            <span className="checklist-title">{title}</span>
+            {items.length > 0 && <span className="checklist-count">{completedCount}/{items.length}</span>}
+          </div>
+          <div className="checklist-input-row">
+            <input
+              type="text"
+              className="checklist-input"
+              placeholder="내용 입력..."
+              value={newText}
+              onChange={function(e) { setNewText(e.target.value); }}
+              onKeyPress={function(e) { if (e.key === 'Enter') handleAdd(); }}
+            />
+            <button className="checklist-submit" onClick={handleAdd}>추가</button>
+          </div>
+          <div className="checklist-items">
+            {items.map(function(item, index) {
+              return (
+                <div
+                  key={item.id}
+                  className={'checklist-item' + (item.completed ? ' completed' : '') + (dragIndex === index ? ' dragging' : '')}
+                  draggable="true"
+                  onDragStart={function(e) { handleDragStart(e, index); }}
+                  onDragOver={function(e) { handleDragOver(e, index); }}
+                  onDragEnd={handleDragEnd}
+                >
+                  <input
+                    type="checkbox"
+                    className="checklist-checkbox"
+                    checked={item.completed}
+                    onChange={function() { handleToggle(item.id); }}
+                  />
+                  <span className={'checklist-text' + (item.completed ? ' completed' : '')}>{item.text}</span>
+                  <span className="checklist-drag">☰</span>
+                  <button className="checklist-delete" onClick={function() { handleDelete(item.id); }}>🗑️</button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    // 드래그 가능 리스트 (프로젝트용 - 체크박스 포함)
+    function DraggableList(props) {
+      const { items, setItems, placeholder } = props;
+      const [newText, setNewText] = useState('');
+      const [dragIndex, setDragIndex] = useState(null);
+
+      function handleAdd() {
+        if (newText.trim()) {
+          setItems([...items, { id: Date.now(), text: newText.trim(), completed: false }]);
+          setNewText('');
+        }
+      }
+
+      function handleToggle(id) {
+        setItems(items.map(function(item) {
+          return item.id === id ? { ...item, completed: !item.completed } : item;
+        }));
+      }
+
+      function handleDelete(id) {
+        setItems(items.filter(function(item) { return item.id !== id; }));
+      }
+
+      function handleDragStart(e, index) {
+        setDragIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+      }
+
+      function handleDragOver(e, index) {
+        e.preventDefault();
+        if (dragIndex === null || dragIndex === index) return;
+        
+        const newItems = [...items];
+        const dragItem = newItems[dragIndex];
+        newItems.splice(dragIndex, 1);
+        newItems.splice(index, 0, dragItem);
+        setItems(newItems);
+        setDragIndex(index);
+      }
+
+      function handleDragEnd() {
+        setDragIndex(null);
+      }
+
+      return (
+        <div>
+          <div className="checklist-input-row">
+            <input
+              type="text"
+              className="checklist-input"
+              placeholder={placeholder}
+              value={newText}
+              onChange={function(e) { setNewText(e.target.value); }}
+              onKeyPress={function(e) { if (e.key === 'Enter') { e.preventDefault(); handleAdd(); } }}
+            />
+            <button type="button" className="checklist-submit" onClick={handleAdd}>추가</button>
+          </div>
+          {items.map(function(item, index) {
+            return (
+              <div
+                key={item.id}
+                className={'draggable-item' + (dragIndex === index ? ' dragging' : '') + (item.completed ? ' completed' : '')}
+                draggable="true"
+                onDragStart={function(e) { handleDragStart(e, index); }}
+                onDragOver={function(e) { handleDragOver(e, index); }}
+                onDragEnd={handleDragEnd}
+              >
+                <input
+                  type="checkbox"
+                  className="checklist-checkbox"
+                  checked={item.completed || false}
+                  onChange={function() { handleToggle(item.id); }}
+                />
+                <span className={'draggable-text' + (item.completed ? ' completed' : '')}>{item.text}</span>
+                <span className="drag-handle">☰</span>
+                <button type="button" className="draggable-delete" onClick={function() { handleDelete(item.id); }}>🗑️</button>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function App() {
+      const [currentPage, setCurrentPage] = useState('home');
+      const [viewMode, setViewMode] = useState('day'); // 'day' or 'week'
+      const [projects, setProjects] = useState([]);
+      const [currentWeek, setCurrentWeek] = useState(null);
+      const [weekHistory, setWeekHistory] = useState([]);
+      const [showProjectModal, setShowProjectModal] = useState(false);
+      const [showSelectProjectModal, setShowSelectProjectModal] = useState(false);
+      const [editingProject, setEditingProject] = useState(null);
+      const [viewingStep, setViewingStep] = useState(null);
+      const [calendarMonth, setCalendarMonth] = useState(new Date());
+      const [openDays, setOpenDays] = useState({});
+
+      const todayStep = getCurrentStep();
+      const weekId = getWeekId();
+      const activeStep = viewingStep || todayStep;
+
+      useEffect(function() {
+        try {
+          const savedProjects = localStorage.getItem('ahbnp_projects');
+          const savedCurrentWeek = localStorage.getItem('ahbnp_currentWeek');
+          const savedHistory = localStorage.getItem('ahbnp_history');
+          if (savedProjects) setProjects(JSON.parse(savedProjects));
+          if (savedCurrentWeek) setCurrentWeek(JSON.parse(savedCurrentWeek));
+          if (savedHistory) setWeekHistory(JSON.parse(savedHistory));
+        } catch (e) {
+          console.log('Load error', e);
+        }
+      }, []);
+
+      useEffect(function() {
+        localStorage.setItem('ahbnp_projects', JSON.stringify(projects));
+      }, [projects]);
+
+      useEffect(function() {
+        if (currentWeek) {
+          localStorage.setItem('ahbnp_currentWeek', JSON.stringify(currentWeek));
+        }
+      }, [currentWeek]);
+
+      useEffect(function() {
+        localStorage.setItem('ahbnp_history', JSON.stringify(weekHistory));
+      }, [weekHistory]);
+
+      useEffect(function() {
+        if (currentWeek && currentWeek.weekId !== weekId) {
+          setWeekHistory(function(prev) { return [currentWeek].concat(prev); });
+          setCurrentWeek(null);
+        }
+      }, [weekId]);
+
+      function handleSaveProject(projectData) {
+        if (editingProject) {
+          setProjects(projects.map(function(p) {
+            return p.id === editingProject.id ? { ...projectData, id: editingProject.id } : p;
+          }));
+          if (currentWeek && currentWeek.projectId === editingProject.id) {
+            setCurrentWeek({ ...currentWeek, projectName: projectData.name, projectIcon: projectData.icon });
+          }
+        } else {
+          setProjects([...projects, { ...projectData, id: Date.now() }]);
+        }
+        setShowProjectModal(false);
+        setEditingProject(null);
+      }
+
+      function handleDeleteProject(id) {
+        if (confirm('프로젝트를 삭제하시겠습니까?')) {
+          setProjects(projects.filter(function(p) { return p.id !== id; }));
+        }
+      }
+
+      function selectWeekProject(project) {
+        const emptyStepData = {};
+        STEP_ORDER.forEach(function(s) {
+          emptyStepData[s] = { guide: '', questions: '', todos: [], memo: [] };
+        });
+        setCurrentWeek({
+          weekId: weekId,
+          projectId: project.id,
+          projectName: project.name,
+          projectIcon: project.icon,
+          stepData: emptyStepData,
+          completedSteps: []
+        });
+        setShowSelectProjectModal(false);
+      }
+
+      function updateStepField(step, field, value) {
+        if (!currentWeek) return;
+        const newStepData = { ...currentWeek.stepData };
+        newStepData[step] = { ...newStepData[step], [field]: value };
+        
+        const stepInfo = newStepData[step];
+        const hasData = stepInfo.guide || stepInfo.questions || (stepInfo.todos && stepInfo.todos.length > 0) || (stepInfo.memo && stepInfo.memo.length > 0);
+        
+        let newCompleted = [...currentWeek.completedSteps];
+        if (hasData && newCompleted.indexOf(step) === -1) {
+          newCompleted.push(step);
+        } else if (!hasData) {
+          newCompleted = newCompleted.filter(function(s) { return s !== step; });
+        }
+        
+        setCurrentWeek({ ...currentWeek, stepData: newStepData, completedSteps: newCompleted });
+      }
+
+      function toggleDayOpen(stepKey) {
+        setOpenDays(function(prev) {
+          return { ...prev, [stepKey]: !prev[stepKey] };
+        });
+      }
+
+      function exportData() {
+        const data = { projects: projects, currentWeek: currentWeek, weekHistory: weekHistory, exportDate: new Date().toISOString() };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'AH_BNP_백업_' + new Date().toISOString().split('T')[0] + '.json';
+        a.click();
+      }
+
+      function importData(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            try {
+              const data = JSON.parse(event.target.result);
+              if (data.projects) setProjects(data.projects);
+              if (data.currentWeek) setCurrentWeek(data.currentWeek);
+              if (data.weekHistory) setWeekHistory(data.weekHistory);
+              alert('데이터를 성공적으로 가져왔습니다!');
+            } catch (err) {
+              alert('파일 형식이 올바르지 않습니다.');
+            }
+          };
+          reader.readAsText(file);
+        }
+      }
+
+      return (
+        <div className="app-container">
+          <header className="header">
+            <div className="header-top">
+              <h1 className="header-title"><span className="ah">AH!</span> BNP</h1>
+              <span className="header-week">{getWeekNumber()}주차</span>
+            </div>
+            <p className="header-subtitle">믿음으로 한 주를 설계하세요</p>
+          </header>
+
+          {currentPage === 'home' && currentWeek && (
+            <div className="view-toggle">
+              <button className={'view-btn' + (viewMode === 'day' ? ' active' : '')} onClick={function() { setViewMode('day'); }}>
+                📅 오늘 보기
+              </button>
+              <button className={'view-btn' + (viewMode === 'week' ? ' active' : '')} onClick={function() { setViewMode('week'); }}>
+                📋 일주일 보기
+              </button>
+            </div>
+          )}
+
+          {currentPage === 'home' && (
+            <div className="project-dropdown-bar">
+              <select 
+                className="project-select"
+                value={currentWeek ? currentWeek.projectId : ''}
+                onChange={function(e) {
+                  const selectedProject = projects.find(function(p) { return p.id === Number(e.target.value); });
+                  if (selectedProject) selectWeekProject(selectedProject);
+                }}
+              >
+                <option value="">프로젝트를 선택하세요</option>
+                {projects.map(function(project) {
+                  return <option key={project.id} value={project.id}>{project.icon} {project.name}</option>;
+                })}
+              </select>
+              <button className="project-add-btn" onClick={function() { setShowProjectModal(true); }}>+</button>
+            </div>
+          )}
+
+          <main className="main-content">
+            {currentPage === 'home' && (
+              <HomePage
+                currentWeek={currentWeek}
+                activeStep={activeStep}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                openDays={openDays}
+                toggleDayOpen={toggleDayOpen}
+                setViewingStep={setViewingStep}
+                setShowSelectProjectModal={setShowSelectProjectModal}
+                updateStepField={updateStepField}
+                todayStep={todayStep}
+              />
+            )}
+            {currentPage === 'calendar' && (
+              <CalendarPage calendarMonth={calendarMonth} setCalendarMonth={setCalendarMonth} />
+            )}
+            {currentPage === 'projects' && (
+              <ProjectsPage
+                projects={projects}
+                currentWeek={currentWeek}
+                selectWeekProject={selectWeekProject}
+                setShowProjectModal={setShowProjectModal}
+                setEditingProject={setEditingProject}
+                handleDeleteProject={handleDeleteProject}
+              />
+            )}
+            {currentPage === 'history' && <HistoryPage weekHistory={weekHistory} />}
+            {currentPage === 'settings' && <SettingsPage exportData={exportData} importData={importData} />}
+          </main>
+
+          <nav className="nav-bar">
+            <button className={'nav-item' + (currentPage === 'home' ? ' active' : '')} onClick={function() { setCurrentPage('home'); setViewingStep(null); }}>
+              <span className="nav-icon">🏠</span><span>홈</span>
+            </button>
+            <button className={'nav-item' + (currentPage === 'calendar' ? ' active' : '')} onClick={function() { setCurrentPage('calendar'); }}>
+              <span className="nav-icon">📅</span><span>달력</span>
+            </button>
+            <button className={'nav-item' + (currentPage === 'projects' ? ' active' : '')} onClick={function() { setCurrentPage('projects'); }}>
+              <span className="nav-icon">📁</span><span>프로젝트</span>
+            </button>
+            <button className={'nav-item' + (currentPage === 'history' ? ' active' : '')} onClick={function() { setCurrentPage('history'); }}>
+              <span className="nav-icon">📜</span><span>히스토리</span>
+            </button>
+            <button className={'nav-item' + (currentPage === 'settings' ? ' active' : '')} onClick={function() { setCurrentPage('settings'); }}>
+              <span className="nav-icon">⚙️</span><span>설정</span>
+            </button>
+          </nav>
+
+          {showProjectModal && (
+            <ProjectModal
+              editingProject={editingProject}
+              onSave={handleSaveProject}
+              onClose={function() { setShowProjectModal(false); setEditingProject(null); }}
+            />
+          )}
+
+          {showSelectProjectModal && (
+            <SelectProjectModal
+              projects={projects}
+              onSelect={selectWeekProject}
+              onClose={function() { setShowSelectProjectModal(false); }}
+              setShowProjectModal={setShowProjectModal}
+            />
+          )}
+        </div>
+      );
+    }
+
+    function HomePage(props) {
+      const { currentWeek, activeStep, viewMode, setViewMode, openDays, toggleDayOpen, setViewingStep, setShowSelectProjectModal, updateStepField, todayStep } = props;
+
+      if (!currentWeek) {
+        return (
+          <div className="card" style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🎯</div>
+            <h3 style={{ marginBottom: '8px' }}>이번 주 프로젝트를 선택하세요</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '20px', fontSize: '0.9rem' }}>
+              상단 드롭다운에서 프로젝트를 선택하거나<br/>+ 버튼으로 새 프로젝트를 만드세요
+            </p>
+          </div>
+        );
+      }
+
+      if (viewMode === 'week') {
+        return (
+          <div>
+            <div className="card current-project">
+              <div className="project-label">이번 주 프로젝트</div>
+              <div className="project-name">{currentWeek.projectIcon} {currentWeek.projectName}</div>
+              <div className="project-date">📅 {formatToday()}</div>
+            </div>
+
+            <div className="week-view">
+              {STEP_ORDER.map(function(stepKey) {
+                const step = STEPS[stepKey];
+                const stepData = currentWeek.stepData[stepKey] || { guide: '', questions: '', todos: [], memo: [] };
+                const isToday = todayStep === stepKey;
+                const isOpen = openDays[stepKey];
+                const todos = stepData.todos || [];
+                const memo = stepData.memo || [];
+
+                return (
+                  <div key={stepKey} className={'week-day-card' + (isToday ? ' today' : '')}>
+                    <div className="week-day-header" onClick={function() { toggleDayOpen(stepKey); }}>
+                      <div className={'week-day-badge ' + step.color}>{step.letter}</div>
+                      <div className="week-day-title">
+                        <h4>{step.nameKo} ({step.day})</h4>
+                        <span>{isToday ? '오늘' : ''} {todos.length > 0 ? '할일 ' + todos.length + '개' : ''}</span>
+                      </div>
+                      <div className="week-day-toggle">{isOpen ? '▼' : '▶'}</div>
+                    </div>
+                    <div className={'week-day-content' + (isOpen ? ' open' : '')}>
+                      {stepData.guide && (
+                        <div className="week-day-section">
+                          <div className="week-day-section-title">💡 가이드</div>
+                          <div className="week-day-text">{stepData.guide}</div>
+                        </div>
+                      )}
+                      {stepData.questions && (
+                        <div className="week-day-section">
+                          <div className="week-day-section-title">✏️ 질문</div>
+                          <div className="week-day-text">{stepData.questions}</div>
+                        </div>
+                      )}
+                      {todos.length > 0 && (
+                        <div className="week-day-section">
+                          <div className="week-day-section-title">✅ 할 일</div>
+                          <div className="week-day-todos">
+                            {todos.map(function(item) {
+                              return (
+                                <div key={item.id} className={'week-day-todo-item' + (item.completed ? ' completed' : '')}>
+                                  {item.completed ? '✓' : '○'} {item.text}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {memo.length > 0 && (
+                        <div className="week-day-section">
+                          <div className="week-day-section-title">💭 메모</div>
+                          <div className="week-day-todos">
+                            {memo.map(function(item) {
+                              return (
+                                <div key={item.id} className={'week-day-todo-item' + (item.completed ? ' completed' : '')}>
+                                  {item.completed ? '✓' : '○'} {item.text}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      <button 
+                        className="btn btn-primary btn-block" 
+                        style={{ marginTop: '12px', padding: '10px' }}
+                        onClick={function(e) { e.stopPropagation(); setViewMode('day'); setViewingStep(stepKey); }}
+                      >
+                        편집하기
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      // Day View
+      const step = STEPS[activeStep];
+      const stepData = currentWeek.stepData[activeStep] || { guide: '', questions: '', todos: [], memo: [] };
+      const todos = stepData.todos || [];
+      const memo = stepData.memo || [];
+
+      function setTodos(newTodos) {
+        updateStepField(activeStep, 'todos', newTodos);
+      }
+
+      function setMemo(newMemo) {
+        updateStepField(activeStep, 'memo', newMemo);
+      }
+
+      return (
+        <div>
+          <div className="card current-project">
+            <div className="project-label">이번 주 프로젝트</div>
+            <div className="project-name">{currentWeek.projectIcon} {currentWeek.projectName}</div>
+            <div className="project-date">📅 {formatToday()}</div>
+          </div>
+
+          <div className="card today-step">
+            <div className="step-header">
+              <div className={'step-badge ' + step.color}>{step.letter}</div>
+              <div className="step-info">
+                <h3>{step.name}</h3>
+                <p>{step.nameKo} • {step.day}요일</p>
+              </div>
+            </div>
+
+            <div className="record-box">
+              <div className="record-box-title">💡 오늘의 가이드</div>
+              <textarea
+                className="record-box-input"
+                placeholder="오늘의 가이드를 기록하세요..."
+                value={stepData.guide || ''}
+                onChange={function(e) { updateStepField(activeStep, 'guide', e.target.value); }}
+              />
+            </div>
+
+            <div className="record-box">
+              <div className="record-box-title">✏️ 생각해볼 질문</div>
+              <textarea
+                className="record-box-input"
+                placeholder="생각해볼 질문과 답변을 기록하세요..."
+                value={stepData.questions || ''}
+                onChange={function(e) { updateStepField(activeStep, 'questions', e.target.value); }}
+              />
+            </div>
+
+            <div className="record-box">
+              <DraggableChecklist items={todos} setItems={setTodos} title="✅ 오늘의 할 일" />
+            </div>
+
+            <div className="record-box">
+              <DraggableChecklist items={memo} setItems={setMemo} title="💭 오늘의 메모" />
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">📊 이번 주 진행 상황</div>
+            <div className="week-progress">
+              {STEP_ORDER.map(function(s) {
+                const isCompleted = currentWeek.completedSteps && currentWeek.completedSteps.indexOf(s) !== -1;
+                const isCurrent = activeStep === s;
+                return (
+                  <div key={s} className="week-day" onClick={function() { setViewingStep(s); }}>
+                    <div className={'week-day-circle' + (isCompleted ? ' completed' : '') + (isCurrent ? ' current' : '')}>
+                      {isCompleted ? '✓' : STEPS[s].letter}
+                    </div>
+                    <span>{STEPS[s].day}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function CalendarPage(props) {
+      const { calendarMonth, setCalendarMonth } = props;
+      const today = new Date();
+      const year = calendarMonth.getFullYear();
+      const month = calendarMonth.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDay = firstDay.getDay();
+      const totalDays = lastDay.getDate();
+
+      const days = [];
+      for (let i = 0; i < startDay; i++) {
+        days.push(<div key={'e' + i} className="calendar-day empty" />);
+      }
+
+      for (let d = 1; d <= totalDays; d++) {
+        const date = new Date(year, month, d);
+        const isToday = date.toDateString() === today.toDateString();
+        const dayOfWeek = date.getDay();
+        const step = getStepForDate(date);
+
+        let cls = 'calendar-day';
+        if (isToday) cls += ' today';
+        if (dayOfWeek === 0) cls += ' sun';
+        if (dayOfWeek === 6) cls += ' sat';
+
+        days.push(
+          <div key={d} className={cls}>
+            <span className="calendar-day-number">{d}</span>
+            <span className="calendar-day-step" style={{ color: isToday ? 'white' : 'var(--' + STEPS[step].color + '-color)' }}>
+              {STEPS[step].letter}
+            </span>
+          </div>
+        );
+      }
+
+      const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+
+      return (
+        <div className="calendar">
+          <div className="calendar-header">
+            <div className="calendar-title">📅 {year}년 {monthNames[month]}</div>
+            <div className="calendar-nav">
+              <button className="calendar-nav-btn" onClick={function() { setCalendarMonth(new Date(year, month - 1, 1)); }}>◀</button>
+              <button className="calendar-nav-btn" onClick={function() { setCalendarMonth(new Date()); }}>오늘</button>
+              <button className="calendar-nav-btn" onClick={function() { setCalendarMonth(new Date(year, month + 1, 1)); }}>▶</button>
+            </div>
+          </div>
+          <div className="calendar-weekdays">
+            <div className="calendar-weekday sun">일</div>
+            <div className="calendar-weekday">월</div>
+            <div className="calendar-weekday">화</div>
+            <div className="calendar-weekday">수</div>
+            <div className="calendar-weekday">목</div>
+            <div className="calendar-weekday">금</div>
+            <div className="calendar-weekday sat">토</div>
+          </div>
+          <div className="calendar-days">{days}</div>
+        </div>
+      );
+    }
+
+    function ProjectsPage(props) {
+      const { projects, currentWeek, selectWeekProject, setShowProjectModal, setEditingProject, handleDeleteProject } = props;
+
+      return (
+        <div>
+          <button className="btn btn-primary btn-block" onClick={function() { setShowProjectModal(true); }} style={{ marginBottom: '16px' }}>
+            + 새 프로젝트 추가
+          </button>
+
+          {projects.length > 0 ? (
+            <div className="card">
+              <div className="card-title">📁 내 프로젝트</div>
+              {projects.map(function(project) {
+                const isActive = currentWeek && currentWeek.projectId === project.id;
+                return (
+                  <div key={project.id} className={'project-item' + (isActive ? ' active' : '')}>
+                    <div className="project-icon">{project.icon}</div>
+                    <div className="project-info" onClick={function() { selectWeekProject(project); }}>
+                      <h4>{project.name} {isActive && <span style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>● 진행중</span>}</h4>
+                      {project.todos && project.todos.length > 0 && <p>{project.todos.length}개 할일</p>}
+                    </div>
+                    <div className="project-actions">
+                      <button className="icon-btn" onClick={function() { setEditingProject(project); setShowProjectModal(true); }}>✏️</button>
+                      <button className="icon-btn delete" onClick={function() { handleDeleteProject(project.id); }}>🗑️</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="card">
+              <div className="empty-state">
+                <div className="empty-icon">📁</div>
+                <p>아직 등록된 프로젝트가 없습니다<br/>새 프로젝트를 추가해보세요!</p>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function HistoryPage(props) {
+      const { weekHistory } = props;
+
+      if (weekHistory.length === 0) {
+        return (
+          <div className="card">
+            <div className="empty-state">
+              <div className="empty-icon">📜</div>
+              <p>아직 기록된 히스토리가 없습니다</p>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="card">
+          <div className="card-title">📜 지난 기록</div>
+          {weekHistory.map(function(week, i) {
+            return (
+              <div key={i} className="history-item">
+                <div className="history-header">
+                  <span className="history-week">{week.weekId}</span>
+                  <span className="history-project">{week.projectIcon} {week.projectName}</span>
+                </div>
+                <div className="history-steps">
+                  {week.completedSteps && week.completedSteps.map(function(s) {
+                    return <span key={s} className="history-step">{STEPS[s] ? STEPS[s].letter : s}</span>;
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function SettingsPage(props) {
+      const { exportData, importData } = props;
+
+      return (
+        <div className="card">
+          <div className="card-title">⚙️ 설정</div>
+          <div className="settings-item" onClick={exportData}>
+            <div className="settings-label"><span>💾</span><span>데이터 내보내기</span></div>
+            <span>→</span>
+          </div>
+          <label className="settings-item">
+            <div className="settings-label"><span>📂</span><span>데이터 가져오기</span></div>
+            <span>→</span>
+            <input type="file" accept=".json" onChange={importData} style={{ display: 'none' }} />
+          </label>
+        </div>
+      );
+    }
+
+    function ProjectModal(props) {
+      const { editingProject, onSave, onClose } = props;
+      const [name, setName] = useState(editingProject ? editingProject.name : '');
+      const [icon, setIcon] = useState(editingProject ? editingProject.icon : '📺');
+      const [todos, setTodos] = useState(editingProject && editingProject.todos ? editingProject.todos : []);
+
+      function handleSubmit(e) {
+        e.preventDefault();
+        if (!name.trim()) {
+          alert('프로젝트 이름을 입력해주세요.');
+          return;
+        }
+        onSave({ name: name, icon: icon, todos: todos });
+      }
+
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal-content" onClick={function(e) { e.stopPropagation(); }}>
+            <div className="modal-header">
+              <h3 className="modal-title">{editingProject ? '프로젝트 수정' : '새 프로젝트'}</h3>
+              <button className="modal-close" onClick={onClose}>✕</button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">아이콘 선택</label>
+                <div className="icon-grid">
+                  {PROJECT_ICONS.map(function(ic) {
+                    return (
+                      <button
+                        key={ic}
+                        type="button"
+                        className={'icon-option' + (icon === ic ? ' selected' : '')}
+                        onClick={function() { setIcon(ic); }}
+                      >
+                        {ic}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">프로젝트 이름</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="예: 유튜브 채널, 책 집필"
+                  value={name}
+                  onChange={function(e) { setName(e.target.value); }}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">할일 목록 (☰ 드래그로 순서 변경)</label>
+                <DraggableList items={todos} setItems={setTodos} placeholder="할일 입력..." />
+              </div>
+              <button type="submit" className="btn btn-primary btn-block">
+                {editingProject ? '수정 완료' : '프로젝트 추가'}
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    function SelectProjectModal(props) {
+      const { projects, onSelect, onClose, setShowProjectModal } = props;
+
+      if (projects.length === 0) {
+        return (
+          <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={function(e) { e.stopPropagation(); }}>
+              <div className="modal-header">
+                <h3 className="modal-title">프로젝트 선택</h3>
+                <button className="modal-close" onClick={onClose}>✕</button>
+              </div>
+              <div className="empty-state">
+                <div className="empty-icon">📁</div>
+                <p>등록된 프로젝트가 없습니다</p>
+              </div>
+              <button className="btn btn-primary btn-block" onClick={function() { onClose(); setShowProjectModal(true); }}>프로젝트 만들기</button>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal-content" onClick={function(e) { e.stopPropagation(); }}>
+            <div className="modal-header">
+              <h3 className="modal-title">이번 주 프로젝트 선택</h3>
+              <button className="modal-close" onClick={onClose}>✕</button>
+            </div>
+            {projects.map(function(project) {
+              return (
+                <div key={project.id} className="project-item" onClick={function() { onSelect(project); }}>
+                  <div className="project-icon">{project.icon}</div>
+                  <div className="project-info">
+                    <h4>{project.name}</h4>
+                    {project.todos && project.todos.length > 0 && <p>{project.todos.length}개 할일</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
