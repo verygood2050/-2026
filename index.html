@@ -7,6 +7,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -40,6 +43,27 @@
     .header-week { font-size: 0.85rem; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; }
     .header-subtitle { font-size: 0.9rem; opacity: 0.9; margin-top: 8px; }
     
+    .user-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: var(--bg-warm); border-bottom: 1px solid var(--border); }
+    .user-info { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; overflow: hidden; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .sync-status { font-size: 0.75rem; color: var(--success); display: flex; align-items: center; gap: 4px; }
+    .sync-status.syncing { color: var(--accent); }
+    .logout-btn { padding: 6px 12px; border: 1px solid var(--border); background: white; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+    .logout-btn:hover { background: var(--bg-main); }
+    
+    .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; padding: 20px; text-align: center; }
+    .login-logo { font-size: 4rem; margin-bottom: 20px; }
+    .login-title { font-size: 2rem; font-weight: 900; color: var(--primary); margin-bottom: 8px; }
+    .login-title .ah { color: var(--accent); }
+    .login-subtitle { color: var(--text-muted); margin-bottom: 30px; }
+    .login-btn { display: flex; align-items: center; gap: 12px; padding: 14px 28px; border: 2px solid var(--border); background: white; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .login-btn:hover { border-color: var(--primary); background: var(--bg-main); }
+    .login-btn img { width: 24px; height: 24px; }
+    .login-features { margin-top: 40px; text-align: left; background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+    .login-features h4 { margin-bottom: 12px; color: var(--primary); }
+    .login-features li { margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted); }
+    
     .view-toggle { display: flex; gap: 8px; padding: 12px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border); }
     .view-btn { flex: 1; padding: 10px; border: 2px solid var(--border); background: white; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .view-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -49,6 +73,10 @@
     .project-select:focus { outline: none; border-color: var(--primary); }
     .project-add-btn { width: 46px; height: 46px; border: 2px solid var(--accent); background: var(--accent); color: white; border-radius: 10px; font-size: 1.5rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .project-add-btn:hover { background: var(--primary); border-color: var(--primary); }
+    
+    .todo-dropdown-bar { display: flex; gap: 8px; padding: 8px 16px; background: var(--bg-warm); border-bottom: 1px solid var(--border); }
+    .todo-select { flex: 1; padding: 10px 14px; border: 2px solid var(--gold); border-radius: 10px; font-size: 0.9rem; font-family: inherit; background: white; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .todo-select:focus { outline: none; border-color: var(--accent); }
     
     .bnpah-bar { display: flex; gap: 3px; padding: 12px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border); }
     .bnpah-step { flex: 1; text-align: center; padding: 6px 2px; border-radius: 8px; font-weight: 600; cursor: pointer; opacity: 0.5; }
@@ -63,8 +91,17 @@
     .bnpah-step.active.p { background: var(--p-color); color: white; }
     .bnpah-step.active.a { background: var(--a-color); color: white; }
     .bnpah-step.active.h { background: var(--h-color); color: white; }
+    .bnpah-step.completed { opacity: 0.8; }
+    .bnpah-step.completed::after { content: '✓'; font-size: 0.6rem; margin-left: 2px; }
     .step-letter { font-size: 1rem; font-weight: 900; }
     .step-day { font-size: 0.6rem; margin-top: 2px; }
+    
+    .todo-list { display: flex; flex-direction: column; gap: 6px; }
+    .todo-list-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--bg-main); border-radius: 10px; border: 1px solid var(--border); }
+    .todo-list-item.completed { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); }
+    .todo-list-text { flex: 1; font-size: 0.95rem; }
+    .todo-list-text.completed { text-decoration: line-through; color: var(--text-muted); }
+    .todo-progress-badge { color: var(--accent); font-size: 0.7rem; }
     
     .nav-bar { display: flex; justify-content: space-around; background: var(--bg-card); padding: 8px; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 650px; border-top: 1px solid var(--border); z-index: 100; }
     .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 10px; border-radius: 12px; cursor: pointer; font-size: 0.65rem; color: var(--text-muted); border: none; background: none; }
@@ -118,12 +155,18 @@
     .checklist-text.completed { text-decoration: line-through; color: var(--text-muted); }
     .checklist-delete { width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 0.8rem; opacity: 0.4; }
     .checklist-delete:hover { background: #FEE2E2; opacity: 1; }
+    .checklist-edit-btn { width: 32px; height: 32px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; }
+    .checklist-edit-btn.save { background: var(--success); color: white; }
+    .checklist-edit-btn.cancel { background: var(--border); color: var(--text-muted); }
+    .checklist-item.editing { background: var(--bg-warm); }
+    .draggable-item.editing { background: var(--bg-warm); }
     
-    /* 일주일 보기 */
     .week-view { margin-bottom: 16px; }
     .week-day-card { background: var(--bg-card); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
     .week-day-card.today { border-left: 4px solid var(--accent); }
+    .week-day-card.completed-card { background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3); }
     .week-day-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; }
+    .week-day-header h4.completed { text-decoration: line-through; color: var(--text-muted); }
     .week-day-badge { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; color: white; }
     .week-day-badge.b { background: var(--b-color); }
     .week-day-badge.n { background: var(--n-color); }
@@ -212,6 +255,10 @@
     .draggable-text.completed { text-decoration: line-through; color: var(--text-muted); }
     .draggable-delete { width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 0.8rem; opacity: 0.4; }
     .draggable-delete:hover { background: #FEE2E2; opacity: 1; }
+    
+    .loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; }
+    .loading-spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -219,6 +266,20 @@
 
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
+
+    // Firebase 설정
+    const firebaseConfig = {
+      apiKey: "AIzaSyBiwHtCHqrNQmIalKF0ibDF59m2L_RRDAE",
+      authDomain: "ahbnp-9c0c3.firebaseapp.com",
+      projectId: "ahbnp-9c0c3",
+      storageBucket: "ahbnp-9c0c3.firebasestorage.app",
+      messagingSenderId: "1094322185424",
+      appId: "1:1094322185424:web:69ff74dd317789a926aad5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
     const STEPS = {
       B: { letter: 'B', name: 'Bible & Basic', nameKo: '말씀과 기본', day: '월', color: 'b' },
@@ -234,20 +295,20 @@
     const PROJECT_ICONS = ['📺', '📚', '💪', '🎨', '💼', '🏠', '✝️', '🎵', '📷', '✈️', '🌱', '💰'];
 
     function getCurrentStep() {
-      const day = new Date().getDay();
-      const map = { 1: 'B', 2: 'N', 3: 'P', 4: 'A1', 5: 'A2', 6: 'H1', 0: 'H2' };
+      var day = new Date().getDay();
+      var map = { 1: 'B', 2: 'N', 3: 'P', 4: 'A1', 5: 'A2', 6: 'H1', 0: 'H2' };
       return map[day] || 'H2';
     }
 
     function getStepForDate(date) {
-      const day = date.getDay();
-      const map = { 1: 'B', 2: 'N', 3: 'P', 4: 'A1', 5: 'A2', 6: 'H1', 0: 'H2' };
+      var day = date.getDay();
+      var map = { 1: 'B', 2: 'N', 3: 'P', 4: 'A1', 5: 'A2', 6: 'H1', 0: 'H2' };
       return map[day] || 'H2';
     }
 
     function getWeekNumber() {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), 0, 1);
+      var now = new Date();
+      var start = new Date(now.getFullYear(), 0, 1);
       return Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
     }
 
@@ -256,33 +317,57 @@
     }
 
     function formatToday() {
-      const now = new Date();
-      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      var now = new Date();
+      var days = ['일', '월', '화', '수', '목', '금', '토'];
       return now.getFullYear() + '년 ' + (now.getMonth() + 1) + '월 ' + now.getDate() + '일 (' + days[now.getDay()] + ')';
     }
 
-    // 드래그 가능 체크리스트
+    // 드래그 가능 체크리스트 (수정 기능 포함)
     function DraggableChecklist(props) {
-      const { items, setItems, title } = props;
-      const [newText, setNewText] = useState('');
-      const [dragIndex, setDragIndex] = useState(null);
+      var items = props.items;
+      var setItems = props.setItems;
+      var title = props.title;
+      var [newText, setNewText] = useState('');
+      var [dragIndex, setDragIndex] = useState(null);
+      var [editingId, setEditingId] = useState(null);
+      var [editText, setEditText] = useState('');
 
       function handleAdd() {
         if (newText.trim()) {
-          const newItem = { id: Date.now(), text: newText.trim(), completed: false };
-          setItems([...items, newItem]);
+          var newItem = { id: Date.now(), text: newText.trim(), completed: false };
+          setItems(items.concat([newItem]));
           setNewText('');
         }
       }
 
       function handleToggle(id) {
         setItems(items.map(function(item) {
-          return item.id === id ? { ...item, completed: !item.completed } : item;
+          return item.id === id ? Object.assign({}, item, { completed: !item.completed }) : item;
         }));
       }
 
       function handleDelete(id) {
         setItems(items.filter(function(item) { return item.id !== id; }));
+      }
+
+      function handleEdit(item) {
+        setEditingId(item.id);
+        setEditText(item.text);
+      }
+
+      function handleSaveEdit(id) {
+        if (editText.trim()) {
+          setItems(items.map(function(item) {
+            return item.id === id ? Object.assign({}, item, { text: editText.trim() }) : item;
+          }));
+        }
+        setEditingId(null);
+        setEditText('');
+      }
+
+      function handleCancelEdit() {
+        setEditingId(null);
+        setEditText('');
       }
 
       function handleDragStart(e, index) {
@@ -295,8 +380,8 @@
         e.preventDefault();
         if (dragIndex === null || dragIndex === index) return;
         
-        const newItems = [...items];
-        const dragItem = newItems[dragIndex];
+        var newItems = items.slice();
+        var dragItem = newItems[dragIndex];
         newItems.splice(dragIndex, 1);
         newItems.splice(index, 0, dragItem);
         setItems(newItems);
@@ -307,7 +392,7 @@
         setDragIndex(null);
       }
 
-      const completedCount = items.filter(function(i) { return i.completed; }).length;
+      var completedCount = items.filter(function(i) { return i.completed; }).length;
 
       return (
         <div>
@@ -328,6 +413,22 @@
           </div>
           <div className="checklist-items">
             {items.map(function(item, index) {
+              if (editingId === item.id) {
+                return (
+                  <div key={item.id} className="checklist-item editing">
+                    <input
+                      type="text"
+                      className="checklist-input"
+                      value={editText}
+                      onChange={function(e) { setEditText(e.target.value); }}
+                      onKeyPress={function(e) { if (e.key === 'Enter') handleSaveEdit(item.id); }}
+                      autoFocus
+                    />
+                    <button className="checklist-edit-btn save" onClick={function() { handleSaveEdit(item.id); }}>✓</button>
+                    <button className="checklist-edit-btn cancel" onClick={handleCancelEdit}>✕</button>
+                  </div>
+                );
+              }
               return (
                 <div
                   key={item.id}
@@ -343,7 +444,11 @@
                     checked={item.completed}
                     onChange={function() { handleToggle(item.id); }}
                   />
-                  <span className={'checklist-text' + (item.completed ? ' completed' : '')}>{item.text}</span>
+                  <span 
+                    className={'checklist-text' + (item.completed ? ' completed' : '')}
+                    onClick={function() { handleEdit(item); }}
+                    style={{ cursor: 'pointer' }}
+                  >{item.text}</span>
                   <span className="checklist-drag">☰</span>
                   <button className="checklist-delete" onClick={function() { handleDelete(item.id); }}>🗑️</button>
                 </div>
@@ -354,27 +459,51 @@
       );
     }
 
-    // 드래그 가능 리스트 (프로젝트용 - 체크박스 포함)
+    // 드래그 가능 리스트 (프로젝트용 - 체크박스 및 수정 기능 포함)
     function DraggableList(props) {
-      const { items, setItems, placeholder } = props;
-      const [newText, setNewText] = useState('');
-      const [dragIndex, setDragIndex] = useState(null);
+      var items = props.items;
+      var setItems = props.setItems;
+      var placeholder = props.placeholder;
+      var [newText, setNewText] = useState('');
+      var [dragIndex, setDragIndex] = useState(null);
+      var [editingId, setEditingId] = useState(null);
+      var [editText, setEditText] = useState('');
 
       function handleAdd() {
         if (newText.trim()) {
-          setItems([...items, { id: Date.now(), text: newText.trim(), completed: false }]);
+          setItems(items.concat([{ id: Date.now(), text: newText.trim(), completed: false }]));
           setNewText('');
         }
       }
 
       function handleToggle(id) {
         setItems(items.map(function(item) {
-          return item.id === id ? { ...item, completed: !item.completed } : item;
+          return item.id === id ? Object.assign({}, item, { completed: !item.completed }) : item;
         }));
       }
 
       function handleDelete(id) {
         setItems(items.filter(function(item) { return item.id !== id; }));
+      }
+
+      function handleEdit(item) {
+        setEditingId(item.id);
+        setEditText(item.text);
+      }
+
+      function handleSaveEdit(id) {
+        if (editText.trim()) {
+          setItems(items.map(function(item) {
+            return item.id === id ? Object.assign({}, item, { text: editText.trim() }) : item;
+          }));
+        }
+        setEditingId(null);
+        setEditText('');
+      }
+
+      function handleCancelEdit() {
+        setEditingId(null);
+        setEditText('');
       }
 
       function handleDragStart(e, index) {
@@ -386,8 +515,8 @@
         e.preventDefault();
         if (dragIndex === null || dragIndex === index) return;
         
-        const newItems = [...items];
-        const dragItem = newItems[dragIndex];
+        var newItems = items.slice();
+        var dragItem = newItems[dragIndex];
         newItems.splice(dragIndex, 1);
         newItems.splice(index, 0, dragItem);
         setItems(newItems);
@@ -412,6 +541,22 @@
             <button type="button" className="checklist-submit" onClick={handleAdd}>추가</button>
           </div>
           {items.map(function(item, index) {
+            if (editingId === item.id) {
+              return (
+                <div key={item.id} className="draggable-item editing">
+                  <input
+                    type="text"
+                    className="checklist-input"
+                    value={editText}
+                    onChange={function(e) { setEditText(e.target.value); }}
+                    onKeyPress={function(e) { if (e.key === 'Enter') handleSaveEdit(item.id); }}
+                    autoFocus
+                  />
+                  <button type="button" className="checklist-edit-btn save" onClick={function() { handleSaveEdit(item.id); }}>✓</button>
+                  <button type="button" className="checklist-edit-btn cancel" onClick={handleCancelEdit}>✕</button>
+                </div>
+              );
+            }
             return (
               <div
                 key={item.id}
@@ -427,7 +572,11 @@
                   checked={item.completed || false}
                   onChange={function() { handleToggle(item.id); }}
                 />
-                <span className={'draggable-text' + (item.completed ? ' completed' : '')}>{item.text}</span>
+                <span 
+                  className={'draggable-text' + (item.completed ? ' completed' : '')}
+                  onClick={function() { handleEdit(item); }}
+                  style={{ cursor: 'pointer' }}
+                >{item.text}</span>
                 <span className="drag-handle">☰</span>
                 <button type="button" className="draggable-delete" onClick={function() { handleDelete(item.id); }}>🗑️</button>
               </div>
@@ -438,137 +587,235 @@
     }
 
     function App() {
-      const [currentPage, setCurrentPage] = useState('home');
-      const [viewMode, setViewMode] = useState('day'); // 'day' or 'week'
-      const [projects, setProjects] = useState([]);
-      const [currentWeek, setCurrentWeek] = useState(null);
-      const [weekHistory, setWeekHistory] = useState([]);
-      const [showProjectModal, setShowProjectModal] = useState(false);
-      const [showSelectProjectModal, setShowSelectProjectModal] = useState(false);
-      const [editingProject, setEditingProject] = useState(null);
-      const [viewingStep, setViewingStep] = useState(null);
-      const [calendarMonth, setCalendarMonth] = useState(new Date());
-      const [openDays, setOpenDays] = useState({});
+      var [user, setUser] = useState(null);
+      var [loading, setLoading] = useState(true);
+      var [syncing, setSyncing] = useState(false);
+      var [currentPage, setCurrentPage] = useState('home');
+      var [viewMode, setViewMode] = useState('day');
+      var [projects, setProjects] = useState([]);
+      var [currentWeek, setCurrentWeek] = useState(null);
+      var [weekHistory, setWeekHistory] = useState([]);
+      var [showProjectModal, setShowProjectModal] = useState(false);
+      var [showSelectProjectModal, setShowSelectProjectModal] = useState(false);
+      var [editingProject, setEditingProject] = useState(null);
+      var [viewingStep, setViewingStep] = useState(null);
+      var [calendarMonth, setCalendarMonth] = useState(new Date());
+      var [openDays, setOpenDays] = useState({});
+      var [selectedTodoId, setSelectedTodoId] = useState(null);
 
-      const todayStep = getCurrentStep();
-      const weekId = getWeekId();
-      const activeStep = viewingStep || todayStep;
+      var todayStep = getCurrentStep();
+      var weekId = getWeekId();
+      var activeStep = viewingStep || todayStep;
 
+      // Auth 상태 감시
       useEffect(function() {
-        try {
-          const savedProjects = localStorage.getItem('ahbnp_projects');
-          const savedCurrentWeek = localStorage.getItem('ahbnp_currentWeek');
-          const savedHistory = localStorage.getItem('ahbnp_history');
-          if (savedProjects) setProjects(JSON.parse(savedProjects));
-          if (savedCurrentWeek) setCurrentWeek(JSON.parse(savedCurrentWeek));
-          if (savedHistory) setWeekHistory(JSON.parse(savedHistory));
-        } catch (e) {
-          console.log('Load error', e);
-        }
+        var unsubscribe = auth.onAuthStateChanged(function(firebaseUser) {
+          setUser(firebaseUser);
+          setLoading(false);
+        });
+        return unsubscribe;
       }, []);
 
+      // Firestore에서 데이터 불러오기
       useEffect(function() {
-        localStorage.setItem('ahbnp_projects', JSON.stringify(projects));
-      }, [projects]);
+        if (!user) return;
 
-      useEffect(function() {
-        if (currentWeek) {
-          localStorage.setItem('ahbnp_currentWeek', JSON.stringify(currentWeek));
-        }
-      }, [currentWeek]);
+        setLoading(true);
+        var userRef = db.collection('users').doc(user.uid);
 
-      useEffect(function() {
-        localStorage.setItem('ahbnp_history', JSON.stringify(weekHistory));
-      }, [weekHistory]);
+        // 프로젝트 불러오기
+        userRef.collection('projects').get().then(function(snapshot) {
+          var loadedProjects = [];
+          snapshot.forEach(function(doc) {
+            loadedProjects.push(Object.assign({ id: doc.id }, doc.data()));
+          });
+          setProjects(loadedProjects);
+        });
 
-      useEffect(function() {
-        if (currentWeek && currentWeek.weekId !== weekId) {
-          setWeekHistory(function(prev) { return [currentWeek].concat(prev); });
+        // 현재 주 데이터 불러오기
+        userRef.collection('weeks').doc(weekId).get().then(function(doc) {
+          if (doc.exists) {
+            setCurrentWeek(doc.data());
+          }
+        });
+
+        // 히스토리 불러오기
+        userRef.collection('weeks').orderBy('weekId', 'desc').limit(10).get().then(function(snapshot) {
+          var history = [];
+          snapshot.forEach(function(doc) {
+            if (doc.id !== weekId) {
+              history.push(doc.data());
+            }
+          });
+          setWeekHistory(history);
+          setLoading(false);
+        });
+      }, [user]);
+
+      // 프로젝트 저장
+      function saveProjects(newProjects) {
+        setProjects(newProjects);
+        if (!user) return;
+
+        setSyncing(true);
+        var userRef = db.collection('users').doc(user.uid);
+        var batch = db.batch();
+
+        // 기존 프로젝트 삭제 후 새로 저장
+        userRef.collection('projects').get().then(function(snapshot) {
+          snapshot.forEach(function(doc) {
+            batch.delete(doc.ref);
+          });
+
+          newProjects.forEach(function(project) {
+            var docRef = userRef.collection('projects').doc(String(project.id));
+            batch.set(docRef, project);
+          });
+
+          return batch.commit();
+        }).then(function() {
+          setSyncing(false);
+        }).catch(function(err) {
+          console.error('Save error:', err);
+          setSyncing(false);
+        });
+      }
+
+      // 현재 주 저장
+      function saveCurrentWeek(newWeek) {
+        setCurrentWeek(newWeek);
+        if (!user || !newWeek) return;
+
+        setSyncing(true);
+        db.collection('users').doc(user.uid)
+          .collection('weeks').doc(weekId)
+          .set(newWeek)
+          .then(function() {
+            setSyncing(false);
+          }).catch(function(err) {
+            console.error('Save week error:', err);
+            setSyncing(false);
+          });
+      }
+
+      function getCurrentProjectTodos() {
+        if (!currentWeek) return [];
+        var project = projects.find(function(p) { return String(p.id) === String(currentWeek.projectId); });
+        return project && project.todos ? project.todos : [];
+      }
+
+      function getSelectedTodo() {
+        if (!selectedTodoId) return null;
+        var todos = getCurrentProjectTodos();
+        return todos.find(function(t) { return String(t.id) === String(selectedTodoId); });
+      }
+
+      // Google 로그인
+      function handleLogin() {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(function(error) {
+          console.error('Login error:', error);
+          alert('로그인 실패: ' + error.message);
+        });
+      }
+
+      // 로그아웃
+      function handleLogout() {
+        if (confirm('로그아웃 하시겠습니까?')) {
+          auth.signOut();
+          setProjects([]);
           setCurrentWeek(null);
+          setWeekHistory([]);
         }
-      }, [weekId]);
+      }
 
       function handleSaveProject(projectData) {
+        var newProjects;
         if (editingProject) {
-          setProjects(projects.map(function(p) {
-            return p.id === editingProject.id ? { ...projectData, id: editingProject.id } : p;
-          }));
-          if (currentWeek && currentWeek.projectId === editingProject.id) {
-            setCurrentWeek({ ...currentWeek, projectName: projectData.name, projectIcon: projectData.icon });
+          newProjects = projects.map(function(p) {
+            return String(p.id) === String(editingProject.id) ? Object.assign({}, projectData, { id: editingProject.id }) : p;
+          });
+          if (currentWeek && String(currentWeek.projectId) === String(editingProject.id)) {
+            saveCurrentWeek(Object.assign({}, currentWeek, { projectName: projectData.name, projectIcon: projectData.icon }));
           }
         } else {
-          setProjects([...projects, { ...projectData, id: Date.now() }]);
+          newProjects = projects.concat([Object.assign({}, projectData, { id: Date.now() })]);
         }
+        saveProjects(newProjects);
         setShowProjectModal(false);
         setEditingProject(null);
       }
 
       function handleDeleteProject(id) {
         if (confirm('프로젝트를 삭제하시겠습니까?')) {
-          setProjects(projects.filter(function(p) { return p.id !== id; }));
+          saveProjects(projects.filter(function(p) { return String(p.id) !== String(id); }));
         }
       }
 
       function selectWeekProject(project) {
-        const emptyStepData = {};
+        var emptyStepData = {};
         STEP_ORDER.forEach(function(s) {
           emptyStepData[s] = { guide: '', questions: '', todos: [], memo: [] };
         });
-        setCurrentWeek({
+        var newWeek = {
           weekId: weekId,
           projectId: project.id,
           projectName: project.name,
           projectIcon: project.icon,
           stepData: emptyStepData,
-          completedSteps: []
-        });
+          completedSteps: [],
+          todoData: {}
+        };
+        saveCurrentWeek(newWeek);
+        setSelectedTodoId(null);
         setShowSelectProjectModal(false);
       }
 
       function updateStepField(step, field, value) {
         if (!currentWeek) return;
-        const newStepData = { ...currentWeek.stepData };
-        newStepData[step] = { ...newStepData[step], [field]: value };
+        var newStepData = Object.assign({}, currentWeek.stepData);
+        newStepData[step] = Object.assign({}, newStepData[step], { [field]: value });
         
-        const stepInfo = newStepData[step];
-        const hasData = stepInfo.guide || stepInfo.questions || (stepInfo.todos && stepInfo.todos.length > 0) || (stepInfo.memo && stepInfo.memo.length > 0);
+        var stepInfo = newStepData[step];
+        var hasData = stepInfo.guide || stepInfo.questions || (stepInfo.todos && stepInfo.todos.length > 0) || (stepInfo.memo && stepInfo.memo.length > 0);
         
-        let newCompleted = [...currentWeek.completedSteps];
+        var newCompleted = currentWeek.completedSteps.slice();
         if (hasData && newCompleted.indexOf(step) === -1) {
           newCompleted.push(step);
         } else if (!hasData) {
           newCompleted = newCompleted.filter(function(s) { return s !== step; });
         }
         
-        setCurrentWeek({ ...currentWeek, stepData: newStepData, completedSteps: newCompleted });
+        saveCurrentWeek(Object.assign({}, currentWeek, { stepData: newStepData, completedSteps: newCompleted }));
       }
 
-      function toggleDayOpen(stepKey) {
+      function toggleDayOpen(key) {
         setOpenDays(function(prev) {
-          return { ...prev, [stepKey]: !prev[stepKey] };
+          var newState = {};
+          newState[key] = !prev[key];
+          return Object.assign({}, prev, newState);
         });
       }
 
       function exportData() {
-        const data = { projects: projects, currentWeek: currentWeek, weekHistory: weekHistory, exportDate: new Date().toISOString() };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        var data = { projects: projects, currentWeek: currentWeek, weekHistory: weekHistory, exportDate: new Date().toISOString() };
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
         a.href = url;
         a.download = 'AH_BNP_백업_' + new Date().toISOString().split('T')[0] + '.json';
         a.click();
       }
 
       function importData(e) {
-        const file = e.target.files[0];
+        var file = e.target.files[0];
         if (file) {
-          const reader = new FileReader();
+          var reader = new FileReader();
           reader.onload = function(event) {
             try {
-              const data = JSON.parse(event.target.result);
-              if (data.projects) setProjects(data.projects);
-              if (data.currentWeek) setCurrentWeek(data.currentWeek);
-              if (data.weekHistory) setWeekHistory(data.weekHistory);
+              var data = JSON.parse(event.target.result);
+              if (data.projects) saveProjects(data.projects);
+              if (data.currentWeek) saveCurrentWeek(data.currentWeek);
               alert('데이터를 성공적으로 가져왔습니다!');
             } catch (err) {
               alert('파일 형식이 올바르지 않습니다.');
@@ -576,6 +823,46 @@
           };
           reader.readAsText(file);
         }
+      }
+
+      // 로딩 화면
+      if (loading) {
+        return (
+          <div className="app-container">
+            <div className="loading-screen">
+              <div className="loading-spinner"></div>
+              <p>로딩 중...</p>
+            </div>
+          </div>
+        );
+      }
+
+      // 로그인 화면
+      if (!user) {
+        return (
+          <div className="app-container">
+            <div className="login-screen">
+              <div className="login-logo">🎯</div>
+              <h1 className="login-title"><span className="ah">AH!</span> BNP</h1>
+              <p className="login-subtitle">믿음으로 한 주를 설계하세요</p>
+              
+              <button className="login-btn" onClick={handleLogin}>
+                <img src="https://www.google.com/favicon.ico" alt="Google" />
+                Google로 로그인
+              </button>
+              
+              <div className="login-features">
+                <h4>✨ 주요 기능</h4>
+                <ul>
+                  <li>📱 PC ↔ 모바일 자동 동기화</li>
+                  <li>📋 프로젝트별 할일 관리</li>
+                  <li>📊 주간 진행 상황 추적</li>
+                  <li>💾 클라우드 자동 저장</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        );
       }
 
       return (
@@ -588,6 +875,40 @@
             <p className="header-subtitle">믿음으로 한 주를 설계하세요</p>
           </header>
 
+          <div className="user-bar">
+            <div className="user-info">
+              <div className="user-avatar">
+                {user.photoURL ? <img src={user.photoURL} alt="" /> : user.displayName ? user.displayName.charAt(0) : '?'}
+              </div>
+              <span>{user.displayName || user.email}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className={'sync-status' + (syncing ? ' syncing' : '')}>
+                {syncing ? '⟳ 동기화중' : '✓ 동기화됨'}
+              </span>
+              <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
+            </div>
+          </div>
+
+          {currentPage === 'home' && (
+            <div className="project-dropdown-bar">
+              <select 
+                className="project-select"
+                value={currentWeek ? currentWeek.projectId : ''}
+                onChange={function(e) {
+                  var selectedProject = projects.find(function(p) { return String(p.id) === e.target.value; });
+                  if (selectedProject) selectWeekProject(selectedProject);
+                }}
+              >
+                <option value="">프로젝트를 선택하세요</option>
+                {projects.map(function(project) {
+                  return <option key={project.id} value={project.id}>{project.icon} {project.name}</option>;
+                })}
+              </select>
+              <button className="project-add-btn" onClick={function() { setShowProjectModal(true); }}>+</button>
+            </div>
+          )}
+          
           {currentPage === 'home' && currentWeek && (
             <div className="view-toggle">
               <button className={'view-btn' + (viewMode === 'day' ? ' active' : '')} onClick={function() { setViewMode('day'); }}>
@@ -599,22 +920,24 @@
             </div>
           )}
 
-          {currentPage === 'home' && (
-            <div className="project-dropdown-bar">
-              <select 
-                className="project-select"
-                value={currentWeek ? currentWeek.projectId : ''}
-                onChange={function(e) {
-                  const selectedProject = projects.find(function(p) { return p.id === Number(e.target.value); });
-                  if (selectedProject) selectWeekProject(selectedProject);
-                }}
-              >
-                <option value="">프로젝트를 선택하세요</option>
-                {projects.map(function(project) {
-                  return <option key={project.id} value={project.id}>{project.icon} {project.name}</option>;
-                })}
-              </select>
-              <button className="project-add-btn" onClick={function() { setShowProjectModal(true); }}>+</button>
+          {currentPage === 'home' && currentWeek && viewMode === 'day' && (
+            <div className="bnpah-bar">
+              {STEP_ORDER.map(function(stepKey) {
+                var step = STEPS[stepKey];
+                var isActive = activeStep === stepKey;
+                var stepInfo = currentWeek.stepData && currentWeek.stepData[stepKey];
+                var isCompleted = stepInfo && (stepInfo.guide || stepInfo.questions || (stepInfo.todos && stepInfo.todos.length > 0) || (stepInfo.memo && stepInfo.memo.length > 0));
+                return (
+                  <div
+                    key={stepKey}
+                    className={'bnpah-step ' + step.color + (isActive ? ' active' : '') + (isCompleted ? ' completed' : '')}
+                    onClick={function() { setViewingStep(stepKey); setSelectedTodoId(null); }}
+                  >
+                    <div className="step-letter">{step.letter}</div>
+                    <div className="step-day">{step.day}</div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -631,6 +954,11 @@
                 setShowSelectProjectModal={setShowSelectProjectModal}
                 updateStepField={updateStepField}
                 todayStep={todayStep}
+                selectedTodoId={selectedTodoId}
+                getSelectedTodo={getSelectedTodo}
+                currentWeekUpdate={saveCurrentWeek}
+                projects={projects}
+                setProjects={saveProjects}
               />
             )}
             {currentPage === 'calendar' && (
@@ -647,7 +975,7 @@
               />
             )}
             {currentPage === 'history' && <HistoryPage weekHistory={weekHistory} />}
-            {currentPage === 'settings' && <SettingsPage exportData={exportData} importData={importData} />}
+            {currentPage === 'settings' && <SettingsPage exportData={exportData} importData={importData} user={user} />}
           </main>
 
           <nav className="nav-bar">
@@ -689,7 +1017,21 @@
     }
 
     function HomePage(props) {
-      const { currentWeek, activeStep, viewMode, setViewMode, openDays, toggleDayOpen, setViewingStep, setShowSelectProjectModal, updateStepField, todayStep } = props;
+      var currentWeek = props.currentWeek;
+      var activeStep = props.activeStep;
+      var viewMode = props.viewMode;
+      var setViewMode = props.setViewMode;
+      var openDays = props.openDays;
+      var toggleDayOpen = props.toggleDayOpen;
+      var setViewingStep = props.setViewingStep;
+      var setShowSelectProjectModal = props.setShowSelectProjectModal;
+      var updateStepField = props.updateStepField;
+      var todayStep = props.todayStep;
+      var selectedTodoId = props.selectedTodoId;
+      var getSelectedTodo = props.getSelectedTodo;
+      var currentWeekUpdate = props.currentWeekUpdate;
+      var projects = props.projects;
+      var setProjects = props.setProjects;
 
       if (!currentWeek) {
         return (
@@ -703,7 +1045,61 @@
         );
       }
 
+      var selectedTodo = getSelectedTodo();
+      var todoData = currentWeek.todoData && currentWeek.todoData[selectedTodoId] ? currentWeek.todoData[selectedTodoId] : { guide: '', questions: '', subtasks: [], memo: [] };
+
+      function updateTodoField(field, value) {
+        var newTodoData = Object.assign({}, currentWeek.todoData || {});
+        if (!newTodoData[selectedTodoId]) {
+          newTodoData[selectedTodoId] = { guide: '', questions: '', subtasks: [], memo: [] };
+        }
+        newTodoData[selectedTodoId] = Object.assign({}, newTodoData[selectedTodoId], { [field]: value });
+        currentWeekUpdate(Object.assign({}, currentWeek, { todoData: newTodoData }));
+      }
+
+      function toggleProjectTodo(todoId) {
+        var updatedProjects = projects.map(function(p) {
+          if (String(p.id) === String(currentWeek.projectId)) {
+            return Object.assign({}, p, {
+              todos: p.todos.map(function(t) {
+                return String(t.id) === String(todoId) ? Object.assign({}, t, { completed: !t.completed }) : t;
+              })
+            });
+          }
+          return p;
+        });
+        setProjects(updatedProjects);
+      }
+
+      // 이번 주 진행 상황 컴포넌트
+      function WeekProgress() {
+        return (
+          <div className="card">
+            <div className="card-title">📊 이번 주 진행 상황</div>
+            <div className="week-progress">
+              {STEP_ORDER.map(function(s) {
+                var stepInfo = currentWeek.stepData && currentWeek.stepData[s];
+                var isCompleted = stepInfo && (stepInfo.guide || stepInfo.questions || (stepInfo.todos && stepInfo.todos.length > 0) || (stepInfo.memo && stepInfo.memo.length > 0));
+                var isCurrent = activeStep === s;
+                return (
+                  <button key={s} className="week-day-btn" onClick={function() { setViewingStep(s); }}>
+                    <div className={'week-day-circle' + (isCompleted ? ' completed' : '') + (isCurrent ? ' current' : '')}>
+                      {isCompleted ? '✓' : STEPS[s].letter}
+                    </div>
+                    <span>{STEPS[s].day}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      // 일주일 보기
       if (viewMode === 'week') {
+        var project = projects.find(function(p) { return String(p.id) === String(currentWeek.projectId); });
+        var projectTodos = project && project.todos ? project.todos : [];
+
         return (
           <div>
             <div className="card current-project">
@@ -714,12 +1110,12 @@
 
             <div className="week-view">
               {STEP_ORDER.map(function(stepKey) {
-                const step = STEPS[stepKey];
-                const stepData = currentWeek.stepData[stepKey] || { guide: '', questions: '', todos: [], memo: [] };
-                const isToday = todayStep === stepKey;
-                const isOpen = openDays[stepKey];
-                const todos = stepData.todos || [];
-                const memo = stepData.memo || [];
+                var step = STEPS[stepKey];
+                var stepData = currentWeek.stepData && currentWeek.stepData[stepKey] ? currentWeek.stepData[stepKey] : { guide: '', questions: '', todos: [], memo: [] };
+                var isToday = todayStep === stepKey;
+                var isOpen = openDays[stepKey];
+                var todos = stepData.todos || [];
+                var memo = stepData.memo || [];
 
                 return (
                   <div key={stepKey} className={'week-day-card' + (isToday ? ' today' : '')}>
@@ -788,17 +1184,81 @@
         );
       }
 
-      // Day View
-      const step = STEPS[activeStep];
-      const stepData = currentWeek.stepData[activeStep] || { guide: '', questions: '', todos: [], memo: [] };
-      const todos = stepData.todos || [];
-      const memo = stepData.memo || [];
+      // 오늘 보기 - 할일 선택됨 (상세 기록)
+      if (selectedTodo) {
+        var subtasks = todoData.subtasks || [];
+        var memoItems = todoData.memo || [];
 
-      function setTodos(newTodos) {
+        function setSubtasks(newSubtasks) {
+          updateTodoField('subtasks', newSubtasks);
+        }
+
+        function setMemoItems(newMemo) {
+          updateTodoField('memo', newMemo);
+        }
+
+        return (
+          <div>
+            <div className="card current-project">
+              <div className="project-label">{currentWeek.projectIcon} {currentWeek.projectName}</div>
+              <div className="project-name">📌 {selectedTodo.text}</div>
+              <div className="project-date">📅 {formatToday()}</div>
+            </div>
+
+            <div className="card today-step">
+              <div className="record-box">
+                <div className="record-box-title">💡 가이드 / 방향</div>
+                <textarea
+                  className="record-box-input"
+                  placeholder="이 할일의 가이드나 방향을 기록하세요..."
+                  value={todoData.guide || ''}
+                  onChange={function(e) { updateTodoField('guide', e.target.value); }}
+                />
+              </div>
+
+              <div className="record-box">
+                <div className="record-box-title">✏️ 생각해볼 질문</div>
+                <textarea
+                  className="record-box-input"
+                  placeholder="관련 질문과 답변을 기록하세요..."
+                  value={todoData.questions || ''}
+                  onChange={function(e) { updateTodoField('questions', e.target.value); }}
+                />
+              </div>
+
+              <div className="record-box">
+                <DraggableChecklist items={subtasks} setItems={setSubtasks} title="✅ 세부 할일" />
+              </div>
+
+              <div className="record-box">
+                <DraggableChecklist items={memoItems} setItems={setMemoItems} title="💭 메모" />
+              </div>
+            </div>
+
+            <button 
+              className="btn btn-primary btn-block"
+              style={{ marginTop: '10px' }}
+              onClick={function() { toggleProjectTodo(selectedTodoId); }}
+            >
+              {selectedTodo.completed ? '미완료로 변경' : '✓ 완료 처리'}
+            </button>
+
+            <WeekProgress />
+          </div>
+        );
+      }
+
+      // 오늘 보기 - 요일(BNPAH) 기반 기록
+      var step = STEPS[activeStep];
+      var stepData = currentWeek.stepData && currentWeek.stepData[activeStep] ? currentWeek.stepData[activeStep] : { guide: '', questions: '', todos: [], memo: [] };
+      var stepTodos = stepData.todos || [];
+      var stepMemo = stepData.memo || [];
+
+      function setStepTodos(newTodos) {
         updateStepField(activeStep, 'todos', newTodos);
       }
 
-      function setMemo(newMemo) {
+      function setStepMemo(newMemo) {
         updateStepField(activeStep, 'memo', newMemo);
       }
 
@@ -840,57 +1300,42 @@
             </div>
 
             <div className="record-box">
-              <DraggableChecklist items={todos} setItems={setTodos} title="✅ 오늘의 할 일" />
+              <DraggableChecklist items={stepTodos} setItems={setStepTodos} title="✅ 오늘의 할 일" />
             </div>
 
             <div className="record-box">
-              <DraggableChecklist items={memo} setItems={setMemo} title="💭 오늘의 메모" />
+              <DraggableChecklist items={stepMemo} setItems={setStepMemo} title="💭 오늘의 메모" />
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-title">📊 이번 주 진행 상황</div>
-            <div className="week-progress">
-              {STEP_ORDER.map(function(s) {
-                const isCompleted = currentWeek.completedSteps && currentWeek.completedSteps.indexOf(s) !== -1;
-                const isCurrent = activeStep === s;
-                return (
-                  <div key={s} className="week-day" onClick={function() { setViewingStep(s); }}>
-                    <div className={'week-day-circle' + (isCompleted ? ' completed' : '') + (isCurrent ? ' current' : '')}>
-                      {isCompleted ? '✓' : STEPS[s].letter}
-                    </div>
-                    <span>{STEPS[s].day}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <WeekProgress />
         </div>
       );
     }
 
     function CalendarPage(props) {
-      const { calendarMonth, setCalendarMonth } = props;
-      const today = new Date();
-      const year = calendarMonth.getFullYear();
-      const month = calendarMonth.getMonth();
-      const firstDay = new Date(year, month, 1);
-      const lastDay = new Date(year, month + 1, 0);
-      const startDay = firstDay.getDay();
-      const totalDays = lastDay.getDate();
+      var calendarMonth = props.calendarMonth;
+      var setCalendarMonth = props.setCalendarMonth;
+      var today = new Date();
+      var year = calendarMonth.getFullYear();
+      var month = calendarMonth.getMonth();
+      var firstDay = new Date(year, month, 1);
+      var lastDay = new Date(year, month + 1, 0);
+      var startDay = firstDay.getDay();
+      var totalDays = lastDay.getDate();
 
-      const days = [];
-      for (let i = 0; i < startDay; i++) {
+      var days = [];
+      for (var i = 0; i < startDay; i++) {
         days.push(<div key={'e' + i} className="calendar-day empty" />);
       }
 
-      for (let d = 1; d <= totalDays; d++) {
-        const date = new Date(year, month, d);
-        const isToday = date.toDateString() === today.toDateString();
-        const dayOfWeek = date.getDay();
-        const step = getStepForDate(date);
+      for (var d = 1; d <= totalDays; d++) {
+        var date = new Date(year, month, d);
+        var isToday = date.toDateString() === today.toDateString();
+        var dayOfWeek = date.getDay();
+        var step = getStepForDate(date);
 
-        let cls = 'calendar-day';
+        var cls = 'calendar-day';
         if (isToday) cls += ' today';
         if (dayOfWeek === 0) cls += ' sun';
         if (dayOfWeek === 6) cls += ' sat';
@@ -905,7 +1350,7 @@
         );
       }
 
-      const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+      var monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
 
       return (
         <div className="calendar">
@@ -932,7 +1377,12 @@
     }
 
     function ProjectsPage(props) {
-      const { projects, currentWeek, selectWeekProject, setShowProjectModal, setEditingProject, handleDeleteProject } = props;
+      var projects = props.projects;
+      var currentWeek = props.currentWeek;
+      var selectWeekProject = props.selectWeekProject;
+      var setShowProjectModal = props.setShowProjectModal;
+      var setEditingProject = props.setEditingProject;
+      var handleDeleteProject = props.handleDeleteProject;
 
       return (
         <div>
@@ -944,7 +1394,7 @@
             <div className="card">
               <div className="card-title">📁 내 프로젝트</div>
               {projects.map(function(project) {
-                const isActive = currentWeek && currentWeek.projectId === project.id;
+                var isActive = currentWeek && String(currentWeek.projectId) === String(project.id);
                 return (
                   <div key={project.id} className={'project-item' + (isActive ? ' active' : '')}>
                     <div className="project-icon">{project.icon}</div>
@@ -973,7 +1423,7 @@
     }
 
     function HistoryPage(props) {
-      const { weekHistory } = props;
+      var weekHistory = props.weekHistory;
 
       if (weekHistory.length === 0) {
         return (
@@ -1009,29 +1459,48 @@
     }
 
     function SettingsPage(props) {
-      const { exportData, importData } = props;
+      var exportData = props.exportData;
+      var importData = props.importData;
+      var user = props.user;
 
       return (
-        <div className="card">
-          <div className="card-title">⚙️ 설정</div>
-          <div className="settings-item" onClick={exportData}>
-            <div className="settings-label"><span>💾</span><span>데이터 내보내기</span></div>
-            <span>→</span>
+        <div>
+          <div className="card">
+            <div className="card-title">👤 계정 정보</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: 'var(--bg-main)', borderRadius: '10px' }}>
+              <div className="user-avatar" style={{ width: '48px', height: '48px', fontSize: '1.2rem' }}>
+                {user.photoURL ? <img src={user.photoURL} alt="" /> : user.displayName ? user.displayName.charAt(0) : '?'}
+              </div>
+              <div>
+                <div style={{ fontWeight: '600' }}>{user.displayName || '사용자'}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{user.email}</div>
+              </div>
+            </div>
           </div>
-          <label className="settings-item">
-            <div className="settings-label"><span>📂</span><span>데이터 가져오기</span></div>
-            <span>→</span>
-            <input type="file" accept=".json" onChange={importData} style={{ display: 'none' }} />
-          </label>
+
+          <div className="card">
+            <div className="card-title">⚙️ 설정</div>
+            <div className="settings-item" onClick={exportData}>
+              <div className="settings-label"><span>💾</span><span>데이터 내보내기</span></div>
+              <span>→</span>
+            </div>
+            <label className="settings-item">
+              <div className="settings-label"><span>📂</span><span>데이터 가져오기</span></div>
+              <span>→</span>
+              <input type="file" accept=".json" onChange={importData} style={{ display: 'none' }} />
+            </label>
+          </div>
         </div>
       );
     }
 
     function ProjectModal(props) {
-      const { editingProject, onSave, onClose } = props;
-      const [name, setName] = useState(editingProject ? editingProject.name : '');
-      const [icon, setIcon] = useState(editingProject ? editingProject.icon : '📺');
-      const [todos, setTodos] = useState(editingProject && editingProject.todos ? editingProject.todos : []);
+      var editingProject = props.editingProject;
+      var onSave = props.onSave;
+      var onClose = props.onClose;
+      var [name, setName] = useState(editingProject ? editingProject.name : '');
+      var [icon, setIcon] = useState(editingProject ? editingProject.icon : '📺');
+      var [todos, setTodos] = useState(editingProject && editingProject.todos ? editingProject.todos : []);
 
       function handleSubmit(e) {
         e.preventDefault();
@@ -1091,7 +1560,10 @@
     }
 
     function SelectProjectModal(props) {
-      const { projects, onSelect, onClose, setShowProjectModal } = props;
+      var projects = props.projects;
+      var onSelect = props.onSelect;
+      var onClose = props.onClose;
+      var setShowProjectModal = props.setShowProjectModal;
 
       if (projects.length === 0) {
         return (
